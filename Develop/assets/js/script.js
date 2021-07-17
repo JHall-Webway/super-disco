@@ -1,53 +1,57 @@
-var ToDoIdCounter = 0;
-var toDo = JSON.parse(localStorage.getItem("toDo"));
+function updateTime(time, task) {
+    $("#currentDay").text(time.format("DD/MM/YYYY hh:mm:ss"));
+    $(".row").each(function (index) {
+       var timeID = parseInt($(this)
+            .children(".hour")
+            .text()
+            .split(" ")[0])
+        
+        $(this).attr("id", timeID)
 
-if (!toDo) {
-    toDo = [];
-    saveTask();
+       if (parseInt(time.format("H")) > timeID) {
+           $(this).children(".col-10").removeClass("past present future").addClass("past")
+       } else if (parseInt(time.format("H")) === timeID) {
+        $(this).children(".col-10").removeClass("past present future").addClass("present")
+       } else {
+        $(this).children(".col-10").removeClass("past present future").addClass("future")
+       }
+    })
 }
-
-
-function blockUpdate(time) {
-    $("#currentDay").text(time.format("DD/MM/YYYY hh:mm:ss A"));
+//Open edit window
+$(".row").on("click", ".col-10", function () {
+   var text = $(this).text()
+   var textInput = $("<textarea>")
+        .val(text)
+        .addClass("col-10");
+   $(this).replaceWith(textInput);
+   textInput.trigger("focus");
+});
+//Save Button
+$(".row").on("click", ".fas", function () {
+    var saveBox = $(this)
+        .parent()
+        .parent()
+        .children(".col-10")
     
-}
+    var text = saveBox.val();
 
-function saveTask(task, setTime) {
-    localStorage.setItem("toDo", JSON.stringify(toDo));
-}
-
-// Hour block generator
-for (let i = 0; i < 24; i++) {
-    $("<div>")
-        .addClass("row")
-        .append($("<div>")
-            .addClass("col-1 hour")
-            .text(moment()
-                .subtract(3 - i, "hours")
-                .format("hh A"))
-        )
-
-        .append($("<div>")
-            .addClass(function () {
-                if (i < 3) {
-                    return "col-10 past";
-                } else if (i === 3) {
-                    return "col-10 present"
-                } else {
-                    return "col-10 future"
-                }
-            })
-        )
-        .append($("<button>")
-            .addClass("col-1 saveBtn")
-            .html("<i class='fas fa-save'></i>")
-        )
-        .attr("id", i)
-        .appendTo($(".container"))
-}
-
+    var savedTask = $("<div>")
+        .text(text)
+        .addClass("col-10 future")
+    console.log(text)
+    saveBox.replaceWith(savedTask);
+})
 //Clock
-blockUpdate(moment());
 setInterval(function () {
-    blockUpdate(moment());
+    var time = moment();
+    updateTime(time, "clock");
 }, 1000);
+
+$(".hour").each(function (index) {
+    $(this).text(moment(6, "HH")
+        .add(index, "hours")
+        .format("H A")    
+    )
+})
+
+updateTime(moment());
